@@ -23,7 +23,7 @@ sub new
 
 sub cnb_form
 {
-	my ($self,$payment) = @_;
+	my ($self,$payment,$button_conf) = @_;
 	my $ch_pars;
 	$ch_pars = $self->check_params($payment);
 	if ($ch_pars == 0)
@@ -36,18 +36,23 @@ sub cnb_form
 	$payment->{language} = 'ru' if !exists $payment->{language};
 	$payment->{language} = 'en' if $payment->{language} eq 'en';
 
-	my $form = qq[<form method="post" action="https://www.liqpay.com/api/pay" accept-charset="utf-8"> \n];
+	my $form = qq[<form id='liqpay_form' method="post" action="https://www.liqpay.com/api/pay" accept-charset="utf-8"> \n];
+	
 	grep
 	{
 		my $param = $_;
-		if (exists $payment->{$param})
-		{
-			$form .= qq[<input type="hidden" name="].$param.qq[" value="].$payment->{$param}.qq[" />\n];
-		} 
-	}@all_params;
-	$form .= qq[<input type="image" src="//static.liqpay.com/buttons/p1].$payment->{language}.qq[.radius.png" name="btn_text" />
-                </form>];
+		$form .= qq[<input type="hidden" name="].$param.qq[" value="].$payment->{$param}.qq[" />\n];
+	}keys %{$payment};
 
+	if ($button_conf eq '')
+	{
+		$form .= qq[<input type="image" src="//static.liqpay.com/buttons/p1].$payment->{language}.qq[.radius.png" name="btn_text" />];	
+	}
+	elsif($button_conf ne '' && $button_conf ne 'none')
+	{
+		$form .= $button_conf;
+	}
+	$form .= qq[</form>];
     return $form;
 }
 
