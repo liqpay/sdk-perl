@@ -6,9 +6,6 @@ use MIME::Base64 qw/encode_base64 decode_base64/;
 use JSON;
 use LWP::UserAgent;
 
-my @all_params = ('public_key','amount','currency','description',
-	'order_id','result_url','server_url','type','signature','language','sandbox'); 
-
 sub new
 {
     my ($class, $public_key,$private_key) = @_;
@@ -32,17 +29,17 @@ sub cnb_form
 	}
 	$payment = $ch_pars;
 	
-	$payment->{signature} = $self->cnb_signature($payment);
+	
 	$payment->{language} = 'ru' if !exists $payment->{language};
 	$payment->{language} = 'en' if $payment->{language} eq 'en';
 
-	my $form = qq[<form id='liqpay_form' method="post" action="https://www.liqpay.com/api/pay" accept-charset="utf-8"> \n];
+	my $data = encode_base64(encode_json($payment));
+    my $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}));
+
+	my $form = qq[<form id='liqpay_form' method="post" action="https://www.liqpay.com/api/checkout" accept-charset="utf-8"> \n];
 	
-	grep
-	{
-		my $param = $_;
-		$form .= qq[<input type="hidden" name="].$param.qq[" value="].$payment->{$param}.qq[" />\n];
-	}keys %{$payment};
+	   $form .= qq[<input type="hidden" name="data" value="].$data.qq[" />\n];
+	   $form .= qq[<input type="hidden" name="signature" value="].$signature.qq[" />\n];
 
 	if ($button_conf eq '')
 	{
@@ -61,11 +58,12 @@ sub api
 	my ($self,$req_url,$payment) = @_;
 	my $url = "https://www.liqpay.com/api/".$req_url;
 	$payment->{public_key} = $self->{public_key};
-	my $data = encode_json($payment);
+	my $data = encode_base64(encode_json($payment));
     my $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}));
+	chop $data;
     chop $signature;
 	$ENV{'PERL_LWP_SSL_VERIFY_HOSTNAME'} = 0;
-	my $ua = LWP::UserAgent->new(timeout=>30,verify_hostname => 0);
+	my $ua = LWP::UserAgent->new(timeout=>60,verify_hostname => 0);
 	my $req = HTTP::Request->new('POST',$url);
 	$req->header("Content-Type"=>"application/json");
 	my $content = "data=$data&signature=$signature";
@@ -79,21 +77,9 @@ sub cnb_signature
 {
 	my ($self,$payment) = @_;
 	my $signature;
-	$payment->{private_key} = $self->{private_key};
 	$payment->{public_key} = $self->{public_key};
-	 
-	grep 
-	{
-	 	if (exists $payment->{$_})
-	 	{
-	 		$signature .= $payment->{$_};
-	 	}
-	 	else
-	 	{
-	 		$signature .= '';
-	 	} 
-	}('private_key','amount','currency','public_key','order_id','type','description','result_url','server_url');
-    $signature = $self->str_to_sign($signature);
+	my $data = encode_base64(encode_json($payment));	
+    $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}));
 	return $signature;
 }
 
@@ -109,7 +95,6 @@ sub str_to_sign
 sub check_params
 {
 	my ($self,$payment) = @_;
-	grep { return 0 unless ($_ ~~ @all_params) }keys %{$payment};
 	$payment->{currency} = 'RUB' if $payment->{currency} eq 'RUR';
 	return $payment;
 }
