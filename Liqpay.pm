@@ -36,7 +36,7 @@ sub cnb_form
 	my $data = encode_base64(encode_json($payment));
     my $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}));
 
-	my $form = qq[<form id='liqpay_form' method="post" action="https://www.liqpay.com/api/checkout" accept-charset="utf-8"> \n];
+	my $form = qq[<form id='liqpay_form' method="post" action="https://www.liqpay.com/api/3/checkout" accept-charset="utf-8"> \n];
 	
 	   $form .= qq[<input type="hidden" name="data" value="].$data.qq[" />\n];
 	   $form .= qq[<input type="hidden" name="signature" value="].$signature.qq[" />\n];
