@@ -33,8 +33,8 @@ sub cnb_form
 	$payment->{language} = 'ru' if !exists $payment->{language};
 	$payment->{language} = 'en' if $payment->{language} eq 'en';
 
-	my $data = encode_base64(encode_json($payment));
-    my $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}));
+	my $data = encode_base64(encode_json($payment),'');
+    my $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}),'');
 
 	my $form = qq[<form id='liqpay_form' method="post" action="https://www.liqpay.com/api/3/checkout" accept-charset="utf-8"> \n];
 	
@@ -58,8 +58,8 @@ sub api
 	my ($self,$req_url,$payment) = @_;
 	my $url = "https://www.liqpay.com/api/".$req_url;
 	$payment->{public_key} = $self->{public_key};
-	my $data = encode_base64(encode_json($payment));
-    my $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}));
+	my $data = encode_base64(encode_json($payment),'');
+    my $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}),'');
 	chop $data;
     chop $signature;
 	$ENV{'PERL_LWP_SSL_VERIFY_HOSTNAME'} = 0;
@@ -78,8 +78,8 @@ sub cnb_signature
 	my ($self,$payment) = @_;
 	my $signature;
 	$payment->{public_key} = $self->{public_key};
-	my $data = encode_base64(encode_json($payment));	
-    $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}));
+	my $data = encode_base64(encode_json($payment),'');	
+    $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}),'');
 	return $signature;
 }
 
@@ -87,7 +87,7 @@ sub cnb_signature
 sub str_to_sign
 {        
 	my ($self,$str) = @_;
-    my $signature = encode_base64(sha1($str));
+    my $signature = encode_base64(sha1($str),'');
     chop($signature);
     return $signature;
 }
