@@ -1,6 +1,6 @@
-sdk-php
+sdk-perl
 =======
 
-LiqPay SDK-PHP
+LiqPay SDK-PERL
 
 Documentation https://www.liqpay.ua/ru/doc
