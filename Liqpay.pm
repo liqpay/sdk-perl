@@ -36,14 +36,14 @@ sub cnb_form
 	my $data = encode_base64(encode_json($payment));
     my $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}));
 
-	my $form = qq[<form id='liqpay_form' method="post" action="https://www.liqpay.com/api/3/checkout" accept-charset="utf-8"> \n];
+	my $form = qq[<form id='liqpay_form' method="post" action="https://www.liqpay.ua/api/3/checkout" accept-charset="utf-8"> \n];
 	
 	   $form .= qq[<input type="hidden" name="data" value="].$data.qq[" />\n];
 	   $form .= qq[<input type="hidden" name="signature" value="].$signature.qq[" />\n];
 
 	if ($button_conf eq '')
 	{
-		$form .= qq[<input type="image" src="//static.liqpay.com/buttons/p1].$payment->{language}.qq[.radius.png" name="btn_text" />];	
+		$form .= qq[<input type="image" src="//static.liqpay.ua/buttons/p1].$payment->{language}.qq[.radius.png" name="btn_text" />];
 	}
 	elsif($button_conf ne '' && $button_conf ne 'none')
 	{
@@ -56,7 +56,7 @@ sub cnb_form
 sub api
 {
 	my ($self,$req_url,$payment) = @_;
-	my $url = "https://www.liqpay.com/api/".$req_url;
+	my $url = "https://www.liqpay.ua/api/".$req_url;
 	$payment->{public_key} = $self->{public_key};
 	my $data = encode_base64(encode_json($payment));
     my $signature = encode_base64(sha1($self->{private_key}.$data.$self->{private_key}));
